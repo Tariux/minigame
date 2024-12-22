@@ -127,6 +127,10 @@ class Player {
       this.move(currentDirection);
     }, 100);
   }
+
+  enemy(enemy = true) {
+    this.enemy = enemy;
+  }
 }
 
 class GameManager {
@@ -155,9 +159,12 @@ class GameManager {
     window.addEventListener("resize", setCanvasSize);
   }
 
-  addPlayer(name = null, randomWalk = false) {
+  addPlayer(name = null, randomWalk = false , enemy = false) {
     const player = new Player(this.canvas, name);
     this.players.add(player);
+    if (enemy) {
+      player.enemy();
+    }
     if (randomWalk) {
       player.walkInterval = player.startRandomWalk();
     }
@@ -189,8 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const gameManager = new GameManager("frame");
   GameManagerInstance = gameManager;
 
+  const enemyPlayer = gameManager.addPlayer("😈" , true , true);
   const mainPlayer = gameManager.addPlayer("🐱");
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 3; i++) {
     gameManager.addPlayer(null, true);
   }
 
