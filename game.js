@@ -7,14 +7,22 @@ class Player {
   constructor(canvas, name = null) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
-    this.name = name || `player-${Math.floor(Math.random() * 10000)}`;
-    this.displayName = name || '🤖';
+    this.name = name || `bro-${Math.floor(Math.random() * 10000)}`;
+    this.displayName = name;
     this.radius = 20;
     this.speed = 2;
     this.position = this.getValidPosition();
     this.velocity = { x: 0, y: 0 };
-    this.friction = 0.9; // Friction factor for sliding effect
+    this.friction = 0.9;
     this.color = this.getRandomColor();
+    this.texture = new Image();
+    this.texture.src = "./assets/player-asset-1.png";
+    this.spriteSize = 128;
+    this.currentFrame = 0;
+    this.frameCount = 4; 
+    this.direction = "down"; 
+    this.frameDelay = 5; 
+    this.frameTimer = 0;
   }
 
   getRandomColor() {
@@ -56,13 +64,23 @@ class Player {
   }
 
   draw() {
-    this.ctx.beginPath();
-    this.ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-    this.ctx.fillStyle = this.color;
-    this.ctx.fill();
-    this.ctx.stroke();
+    const directions = {down: 0, right: 1, left: 2 ,up: 3};
+    const spriteY = directions[this.direction] * this.spriteSize;
+    const spriteX = this.currentFrame * this.spriteSize;
 
-    this.ctx.font = "16px Arial";
+    this.ctx.drawImage(
+      this.texture,
+      spriteX,
+      spriteY,
+      this.spriteSize,
+      this.spriteSize,
+      this.position.x - this.radius,
+      this.position.y - this.radius,
+      this.radius * 2,
+      this.radius * 2
+    );
+
+    this.ctx.font = "12px Minecraftia";
     this.ctx.fillStyle = "#000";
     this.ctx.textAlign = "center";
     this.ctx.fillText(
@@ -76,7 +94,6 @@ class Player {
     this.velocity.x *= this.friction;
     this.velocity.y *= this.friction;
 
-    // Prevent jitter by zeroing small velocities
     if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
     if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0;
   }
@@ -85,7 +102,7 @@ class Player {
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
 
-    // Keep within canvas bounds
+ 
     const padding = this.radius + 10;
     this.position.x = Math.min(
       Math.max(this.position.x, padding),
@@ -95,6 +112,13 @@ class Player {
       Math.max(this.position.y, padding),
       this.canvas.height - padding
     );
+
+    // Update animation frame
+    // not used yet.
+    this.frameTimer++;
+    if (this.frameTimer >= this.frameDelay) {
+      this.frameTimer = 0;
+    }
   }
 
   move(direction) {
@@ -112,6 +136,7 @@ class Player {
         this.velocity.x += this.speed;
         break;
     }
+    this.direction = direction;
   }
 
   startRandomWalk() {
@@ -130,6 +155,10 @@ class Player {
 
   enemy(enemy = true) {
     this.enemy = enemy;
+  }
+
+  setSpeed(speed) {
+    this.speed = speed;
   }
 }
 
@@ -159,7 +188,7 @@ class GameManager {
     window.addEventListener("resize", setCanvasSize);
   }
 
-  addPlayer(name = null, randomWalk = false , enemy = false) {
+  addPlayer(name = null, randomWalk = false, enemy = false) {
     const player = new Player(this.canvas, name);
     this.players.add(player);
     if (enemy) {
@@ -191,14 +220,14 @@ class GameManager {
 }
 
 // USAGE IS HERE:
-
 document.addEventListener("DOMContentLoaded", () => {
   const gameManager = new GameManager("frame");
   GameManagerInstance = gameManager;
 
-  const enemyPlayer = gameManager.addPlayer("😈" , true , true);
-  const mainPlayer = gameManager.addPlayer("🐱");
-  for (let i = 0; i < 3; i++) {
+  const enemyPlayer = gameManager.addPlayer(null, true, true);
+  enemyPlayer.setSpeed(5);
+  const mainPlayer = gameManager.addPlayer('Player');
+  for (let i = 0; i < 7; i++) {
     gameManager.addPlayer(null, true);
   }
 
