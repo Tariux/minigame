@@ -10,8 +10,10 @@ class Player {
     this.name = name || `player-${Math.floor(Math.random() * 10000)}`;
     this.displayName = name || '🤖';
     this.radius = 20;
-    this.speed = 5;
+    this.speed = 2;
     this.position = this.getValidPosition();
+    this.velocity = { x: 0, y: 0 };
+    this.friction = 0.9; // Friction factor for sliding effect
     this.color = this.getRandomColor();
   }
 
@@ -70,33 +72,45 @@ class Player {
     );
   }
 
-  move(direction) {
-    const newPosition = { ...this.position };
-    const padding = this.radius + 10;
+  applyFriction() {
+    this.velocity.x *= this.friction;
+    this.velocity.y *= this.friction;
 
+    // Prevent jitter by zeroing small velocities
+    if (Math.abs(this.velocity.x) < 0.01) this.velocity.x = 0;
+    if (Math.abs(this.velocity.y) < 0.01) this.velocity.y = 0;
+  }
+
+  updatePosition() {
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+
+    // Keep within canvas bounds
+    const padding = this.radius + 10;
+    this.position.x = Math.min(
+      Math.max(this.position.x, padding),
+      this.canvas.width - padding
+    );
+    this.position.y = Math.min(
+      Math.max(this.position.y, padding),
+      this.canvas.height - padding
+    );
+  }
+
+  move(direction) {
     switch (direction) {
       case "up":
-        newPosition.y = Math.max(padding, this.position.y - this.speed);
+        this.velocity.y -= this.speed;
         break;
       case "down":
-        newPosition.y = Math.min(
-          this.canvas.height - padding,
-          this.position.y + this.speed
-        );
+        this.velocity.y += this.speed;
         break;
       case "left":
-        newPosition.x = Math.max(padding, this.position.x - this.speed);
+        this.velocity.x -= this.speed;
         break;
       case "right":
-        newPosition.x = Math.min(
-          this.canvas.width - padding,
-          this.position.x + this.speed
-        );
+        this.velocity.x += this.speed;
         break;
-    }
-
-    if (this.isValidPosition(newPosition)) {
-      this.position = newPosition;
     }
   }
 
@@ -159,6 +173,8 @@ class GameManager {
     const loop = () => {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       for (let player of this.players) {
+        player.applyFriction();
+        player.updatePosition();
         player.draw();
       }
       requestAnimationFrame(loop);
@@ -166,7 +182,6 @@ class GameManager {
     loop();
   }
 }
-
 
 // USAGE IS HERE:
 
@@ -184,6 +199,10 @@ document.addEventListener("DOMContentLoaded", () => {
     ArrowDown: "down",
     ArrowLeft: "left",
     ArrowRight: "right",
+    w: "up",
+    s: "down",
+    a: "left",
+    d: "right",
   };
 
   window.addEventListener("keydown", (event) => {
