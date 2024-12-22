@@ -4,11 +4,20 @@
 
 var GameManagerInstance = null;
 class Player {
-  constructor(canvas, name = null) {
+  constructor(canvas, name = null, texture) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
+    this.name = `bro-${Math.floor(Math.random() * 10000)}`;
+    if (typeof name === 'string') {
+      this.displayName = name;
+    }
+    else if (name === null) {
+      this.displayName = '';
+    }
+    else if (name === false) {
+      this.displayName = this.name;
+    }
     this.name = name || `bro-${Math.floor(Math.random() * 10000)}`;
-    this.displayName = name;
     this.radius = 20;
     this.speed = 2;
     this.position = this.getValidPosition();
@@ -16,7 +25,7 @@ class Player {
     this.friction = 0.9;
     this.color = this.getRandomColor();
     this.texture = new Image();
-    this.texture.src = "./assets/player-asset-1.png";
+    this.texture.src = texture;
     this.spriteSize = 128;
     this.currentFrame = 0;
     this.frameCount = 4; 
@@ -84,7 +93,7 @@ class Player {
     this.ctx.fillStyle = "#000";
     this.ctx.textAlign = "center";
     this.ctx.fillText(
-      this.displayName || this.name,
+      this.displayName,
       this.position.x,
       this.position.y + this.radius + 20
     );
@@ -188,8 +197,8 @@ class GameManager {
     window.addEventListener("resize", setCanvasSize);
   }
 
-  addPlayer(name = null, randomWalk = false, enemy = false) {
-    const player = new Player(this.canvas, name);
+  addPlayer(name = null, randomWalk = false, enemy = false , texture = "./assets/player-asset-1.png") {
+    const player = new Player(this.canvas, name, texture);
     this.players.add(player);
     if (enemy) {
       player.enemy();
@@ -226,11 +235,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const enemyPlayer = gameManager.addPlayer(null, true, true);
   enemyPlayer.setSpeed(5);
-  const mainPlayer = gameManager.addPlayer('Player');
-  for (let i = 0; i < 7; i++) {
-    gameManager.addPlayer(null, true);
+  const mainPlayer = gameManager.addPlayer('Player' , false, false ,'./assets/player-asset-3.png');
+  for (let i = 0; i < 10; i++) {
+    gameManager.addPlayer(false, true);
   }
-
+  for (let i = 0; i < 5; i++) {
+    gameManager.addPlayer(null, true, true,'./assets/player-asset-2.png');
+  }
   const movementKeys = {
     ArrowUp: "up",
     ArrowDown: "down",
